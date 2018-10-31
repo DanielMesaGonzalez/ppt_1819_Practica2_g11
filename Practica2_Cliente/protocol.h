@@ -2,14 +2,16 @@
 #define protocolostpte_practicas_headerfile
 #endif
 
-// COMANDOS DE APLICACION
-#define SC "USER"  // SOLICITUD DE CONEXION USER usuario 
-#define PW "PASS"  // Password del usuario  PASS password
+//COMANDOS DE APLICACIÓN
 
-#define SD  "QUIT"  // Finalizacion de la conexion de aplicacion
-#define SD2 "EXIT"  // Finalizacion de la conexion de aplicacion 
-#define ECHO "ECHO" // Definicion del comando "ECHO" para el servicio de eco
+#define HELO "HELO"  //Bienvenida
+#define QUIT "QUIT"  //Finalizar conexión
 
+#define MAIL "MAIL"   
+#define FROM "FROM"  
+#define RCPT "RCPT"  
+#define TO  "TO:"  
+#define SP " "
 
 // RESPUESTAS A COMANDOS DE APLICACION
 #define OK  "OK"
@@ -27,7 +29,7 @@
 #define S_EXIT 5
 
 //PUERTO DEL SERVICIO
-#define TCP_SERVICE_PORT	6000
+#define TCP_SERVICE_PORT	25 
 
 // NOMBRE Y PASSWORD AUTORIZADOS
 #define USER		"alumno"

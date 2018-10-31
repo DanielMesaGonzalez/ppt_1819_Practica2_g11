@@ -111,8 +111,12 @@ int main(int *argc, char *argv[])
 				do{
 					switch(estado){
 					case S_HELO:
-						// Se recibe el mensaje de bienvenida
+						
+						//-------------------------------------
+						sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s",HELO,SP,CRLF);
+						//-------------------------------------
 						break;
+
 					case S_USER:
 						// establece la conexion de aplicacion 
 						printf("CLIENTE> Introduzca el usuario (enter para salir): ");
