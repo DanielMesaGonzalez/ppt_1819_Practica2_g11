@@ -146,7 +146,7 @@ int main(int *argc, char *argv[])
 						else
 							sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",ECHO,input,CRLF);
 						break;
-				
+					//CREAR ASUNTO
 					}
 
 					if(estado!=S_HELO){

@@ -29,7 +29,7 @@
 #define S_DATA 3
 #define S_QUIT 4
 #define S_EXIT 5
-
+//HAY QUE AÑADIR ASUNTO
 //PUERTO DEL SERVICIO
 #define TCP_SERVICE_PORT	25 
 
