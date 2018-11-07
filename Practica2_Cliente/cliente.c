@@ -30,7 +30,13 @@ int main(int *argc, char *argv[])
 	char buffer_in[1024], buffer_out[1024],input[1024];
 	int recibidos=0,enviados=0;
 	int estado=S_HELO;
+
+	char remitente[10] = " ";
+	char destinatario[10] = " ";
+	char data[10] = " ";
 	char option;
+
+
 	int ipversion=AF_INET;//IPv4 por defecto
 	char ipdest[256];
 	char default_ip4[16]="127.0.0.1";
@@ -106,7 +112,7 @@ int main(int *argc, char *argv[])
 
 			if(connect(sockfd, server_in, address_size)==0){
 				printf("CLIENTE> CONEXION ESTABLECIDA CON %s:%d\r\n",ipdest,TCP_SERVICE_PORT);
-			
+			//implementar recibidos
 				//Inicio de la máquina de estados
 				do{
 					switch(estado){
@@ -117,28 +123,19 @@ int main(int *argc, char *argv[])
 						//-------------------------------------
 						break;
 
-					case S_USER:
-						// establece la conexion de aplicacion 
-						printf("CLIENTE> Introduzca el usuario (enter para salir): ");
-						gets_s(input,sizeof(input));
-						if(strlen(input)==0){
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
-						}
-						else
+					case S_MAIL_FROM:
+						printf("Introdude remitente: ");
+						gets_s(remitente, sizeof(remitente));
+						//faltaría immplentar rset
+						break;
 
-						sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",SC,input,CRLF);
+					case S_RCPT:
+						printf("Introducir destinatario:");
+						gets_s(destinatario, sizeof(destinatario));
+						//faltaría immplentar rset
+
 						break;
-					case S_PASS:
-						printf("CLIENTE> Introduzca la clave (enter para salir): ");
-						gets_s(input, sizeof(input));
-						if(strlen(input)==0){
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s%s",SD,CRLF);
-							estado=S_QUIT;
-						}
-						else
-							sprintf_s (buffer_out, sizeof(buffer_out), "%s %s%s",PW,input,CRLF);
-						break;
+
 					case S_DATA:
 						printf("CLIENTE> Introduzca datos (enter o QUIT para salir): ");
 						gets_s(input, sizeof(input));

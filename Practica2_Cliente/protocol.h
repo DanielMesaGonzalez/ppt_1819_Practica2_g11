@@ -12,6 +12,8 @@
 #define RCPT "RCPT"  
 #define TO  "TO:"  
 #define SP " "
+#define SD "SD"
+#define ECHO "ECHO"
 
 // RESPUESTAS A COMANDOS DE APLICACION
 #define OK  "OK"
@@ -22,8 +24,8 @@
 
 //ESTADOS
 #define S_HELO 0
-#define S_USER 1
-#define S_PASS 2
+#define S_MAIL_FROM 1
+#define S_RCPT 2
 #define S_DATA 3
 #define S_QUIT 4
 #define S_EXIT 5
