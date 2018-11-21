@@ -15,7 +15,6 @@ Autor:
 Daniel Mesa González
 Javier Sánchez Samper
 
-
 *******************************************************/
 #include <stdio.h>
 #include <ws2tcpip.h>//Necesaria para las funciones IPv6
