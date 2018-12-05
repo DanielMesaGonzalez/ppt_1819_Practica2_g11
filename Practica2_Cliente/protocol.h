@@ -28,8 +28,8 @@
 #define S_MAIL_FROM 1
 #define S_RCPT 2
 #define S_DATA 3
-#define S_QUIT 4
-#define S_EXIT 5
+#define S_MENSAJE 4
+#define S_QUIT 5
 
 //PUERTO DEL SERVICIO
 #define TCP_SERVICE_PORT	25 
