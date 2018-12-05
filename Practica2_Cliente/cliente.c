@@ -33,18 +33,7 @@ int main(int *argc, char *argv[])
 	char buffer_in[1024], buffer_out[1024],input[1024];
 	int recibidos=0,enviados=0;
 	int estado=S_HELO;
-
-	char remitente[10] = " ";
-	char destinatario[10] = " ";
-	char data[10] = " ";
-	char option="/0";
-	char fecha[100]=" ";
-	char mensaje[1024] = " ";
-	char cadena[1024] = ".";
-	char asunto[1024] = " ";
-	int comprobacion = 0;
-	int comprobacion2 = 0;
-	int comprobacion3 = 0;
+	char option;
 
 
 	int ipversion=AF_INET;//IPv4 por defecto
@@ -167,7 +156,7 @@ int main(int *argc, char *argv[])
 
 						sprintf_s(buffer_out,sizeof(buffer_out), "%s%s", cadena, CRLF);
 						break;
-						
+				
 					}
 
 
