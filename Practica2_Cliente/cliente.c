@@ -20,6 +20,7 @@ Javier Sánchez Samper
 #include <ws2tcpip.h>//Necesaria para las funciones IPv6
 #include <conio.h>
 #include "protocol.h"
+#include <time.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -45,12 +46,14 @@ int main(int *argc, char *argv[])
 	int comprobacion = 0;
 	int comprobacion2 = 0;
 	int comprobacion3 = 0;
-
+	
 
 	int ipversion=AF_INET;//IPv4 por defecto
 	char ipdest[256];
+	char ipdest1;
 	char default_ip4[16]="127.0.0.1";
 	char default_ip6[64]="::1";
+	char fechayhora;
 
 	WORD wVersionRequested;
 	WSADATA wsaData;
@@ -120,159 +123,191 @@ int main(int *argc, char *argv[])
 
 			estado=S_HELO;
 
-			if(connect(sockfd, server_in, address_size)==0){
-				printf("CLIENTE> CONEXION ESTABLECIDA CON %s:%d\r\n",ipdest,TCP_SERVICE_PORT);
-			//implementar recibidos
-				//Inicio de la máquina de estados
-				do{
-					switch(estado){
-					case S_HELO:
-						
-						//-------------------------------------
-						sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s",HELO,SP,CRLF);
-						//-------------------------------------
-						break;
+			if (connect(sockfd, (struct sockaddr*) &server_in, sizeof(server_in)) == 0) {
+				printf("CLIENTE> CONEXION ESTABLECIDA CON %s:%d\r\n", ipdest, TCP_SERVICE_PORT);
+				//-------implementar recibidos--------
+				recibidos = recv(sockfd, buffer_in, 512, 0);
+				if (recibidos <= 0){
+					DWORD error = GetLastError();
+					if (recibidos < 0) {
+						printf("<CLIENTE> Error %d en la recepción de datos /r/n", error);
+						estado = S_QUIT;
+					}
+					else {
+						printf("CLIENTE> Conexión con el servidor cerrada /r/n");
+						estado = S_QUIT;
+					}
+				}
+				else {
+					buffer_in[recibidos] = 0x00;
+					printf(buffer_in);
 
-					case S_MAIL_FROM:
-						printf("Introdude remitente: ");
-						gets_s(remitente, sizeof(remitente));
-						//faltaría immplentar rset
-						break;
+					//-------------------------------------------
 
-					case S_RCPT:
-						printf("Introducir destinatario:");
-						gets_s(destinatario, sizeof(destinatario));
-						//faltaría immplentar rset
 
-						break;
+						//Inicio de la máquina de estados
+					do {
+						switch (estado) {
+						case S_HELO:
 
-					case S_DATA:
-							sprintf_s (buffer_out, sizeof(buffer_out), "DATA%s",CRLF);
-						break;
+							//-------------------------------------
+							sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s%s", HELO, SP, SERVER, CRLF);
+							//-------------------------------------
+							break;
 
-					case S_MENSAJE:
-						printf("Introduce el asunto: ");
-						gets_s(asunto, sizeof(asunto));
-						sprintf_s(mensaje, sizeof(mensaje), "DATE: %s%sSUBJECT: %s%sFROM: %s%sTO: %s%s%s",fecha, CRLF, asunto, CRLF, destinatario, CRLF, remitente, CRLF, CRLF );
-						sprintf_s(buffer_out, sizeof(buffer_out),"%s",mensaje);
+						case S_MAIL_FROM:
+							printf("Introdude remitente(rset para limpiar): ");
+							gets_s(remitente, sizeof(remitente));
+							//---------------immplentación rset-----------------------------
+							if (strncmp(remitente, "rset", 4) == 0) {
+								sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", remitente, CRLF);
+							}
+							else {
+								sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s%s%s", RCPT, SP, TO, destinatario, CRLF);
+							}
+							break;
+
+						case S_RCPT:
+							printf("Introducir destinatario(rset para limpiar):");
+							gets_s(destinatario, sizeof(destinatario));
+							//----------------immplentaion rset-------------------
+							if (strncmp(remitente, "rset", 4) == 0) {
+								sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", remitente, CRLF);
+							}
+							else {
+								sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s%s%s", RCPT, SP, TO, destinatario, CRLF);
+							}
+							break;
+
+						case S_DATA:
+							sprintf_s(buffer_out, sizeof(buffer_out), "DATA%s", CRLF);
+							break;
+
+						case S_MENSAJE:
+							printf("Introduce el asunto: ");
+							gets_s(asunto, sizeof(asunto));
+							sprintf_s(mensaje, sizeof(mensaje), "DATE: %s%sSUBJECT: %s%sFROM: %s%sTO: %s%s%s", fecha, CRLF, asunto, CRLF, destinatario, CRLF, remitente, CRLF, CRLF);
+							sprintf_s(buffer_out, sizeof(buffer_out), "%s", mensaje);
+
+							enviados = send(sockfd, buffer_out, (int)strlen(buffer_out), 0);
+							printf("Introducir mensaje para enviar (para finalizar introducir un punto(.)): ");
+
+							do {
+								gets_s(cadena, sizeof(cadena));
+								sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", cadena, CRLF);
+								enviados = send(sockfd, buffer_out, (int)strlen(buffer_out), 0);
+							} while (strcmp(cadena, ".") != 0);
+
+							sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", cadena, CRLF);
+							break;
+
+						}
+
 
 						enviados = send(sockfd, buffer_out, (int)strlen(buffer_out), 0);
-						printf("Introducir mensaje para enviar (para finalizar introducir un punto(.)): ");
-
-						do {
-							gets_s(cadena, sizeof(cadena));
-							sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", cadena, CRLF);
-							enviados = send(sockfd, buffer_out, (int)strlen(buffer_out), 0);
-						} while (strcmp(cadena, ".") != 0); 
-
-						sprintf_s(buffer_out,sizeof(buffer_out), "%s%s", cadena, CRLF);
-						break;
-				
-					}
-
-
-						enviados=send(sockfd,buffer_out,(int)strlen(buffer_out),0);
-						if(enviados==SOCKET_ERROR){
-							 estado=S_QUIT;
-							 continue;
-						}
-					
-						
-					recibidos=recv(sockfd,buffer_in,512,0);
-					if(recibidos<=0){
-						DWORD error=GetLastError();
-						if(recibidos<0){
-							printf("CLIENTE> Error %d en la recepción de datos\r\n",error);
-							estado=S_QUIT;
-						}
-						else{
-							printf("CLIENTE> Conexión con el servidor cerrada\r\n");
-							estado=S_QUIT;
-						}
-					}else{
-						buffer_in[recibidos]=0x00;
-						printf(buffer_in);
-						if (strcmp(buffer_in, "5", 1) == 0) {
-							printf("Cerrando el servidor");
+						if (enviados == SOCKET_ERROR) {
 							estado = S_QUIT;
+							continue;
+						}
+
+
+						recibidos = recv(sockfd, buffer_in, 512, 0);
+						if (recibidos <= 0) {
+							DWORD error = GetLastError();
+							if (recibidos < 0) {
+								printf("CLIENTE> Error %d en la recepción de datos\r\n", error);
+								estado = S_QUIT;
+							}
+							else {
+								printf("CLIENTE> Conexión con el servidor cerrada\r\n");
+								estado = S_QUIT;
+							}
 						}
 						else {
-							if (estado == S_HELO && strcmp(buffer_in, "2", 1) == 0) {
-								estado++;
+							buffer_in[recibidos] = 0x00;
+							printf(buffer_in);
+							if (strcmp(buffer_in, "5", 1) == 0) {
+								printf("Cerrando el servidor");
+								estado = S_QUIT;
 							}
-							else if (estado == S_MAIL_FROM && strcmp(buffer_in, "2", 1) == 0) {
-								if (strncmp(buffer_out, "rset", 4) == 0) {
-									estado = S_HELO;
-								}
-								else {
+							else {
+								if (estado == S_HELO && strcmp(buffer_in, "2", 1) == 0) {
 									estado++;
 								}
-							}
-							else if (estado==S_RCPT){
-								if (strncmp(buffer_in, "2", 1) == 0) {
+								else if (estado == S_MAIL_FROM && strcmp(buffer_in, "2", 1) == 0) {
 									if (strncmp(buffer_out, "rset", 4) == 0) {
 										estado = S_HELO;
 									}
 									else {
-										printf("¿Desea cambiar el remitente?");
+										estado++;
+									}
+								}
+								else if (estado == S_RCPT) {
+									if (strncmp(buffer_in, "2", 1) == 0) {
+										if (strncmp(buffer_out, "rset", 4) == 0) {
+											estado = S_HELO;
+										}
+										else {
+											printf("¿Desea cambiar el remitente?");
+											do {
+												option = _getche();
+												printf("%s", CRLF);
+												if (option == 'S' || option == 's') {
+													estado = S_RCPT;
+													comprobacion3 = 1;
+												}
+												else if (option == 'N' || option == 'n') {
+													estado++;
+													comprobacion3 = 1;
+												}
+												else {
+													printf("Incorrecto,vuelve a introducir una opcion (S/N)%s", CRLF);
+													comprobacion3 = 0;
+												}
+											} while (comprobacion3 == 0);
+										}
+									}
+									else {
+										printf("ERROR, no existe un destinatario en el servidor%s", CRLF);
+										estado = S_RCPT;
+									}
+								}
+								else if (estado == S_DATA && strncmp(buffer_in, "3", 1) == 0) {
+									estado++;
+								}
+								else if (estado == S_MENSAJE) {
+									if (strcmp(cadena, ".") == 0 && strncmp(buffer_in, "2", 1) == 0) {
+										printf("¿Desea enviar otro correo (S/N)?: ");
+
 										do {
 											option = _getche();
 											printf("%s", CRLF);
 											if (option == 'S' || option == 's') {
-												estado = S_RCPT;
-												comprobacion3 = 1;
+												estado = S_MAIL_FROM;
+												comprobacion = 1;
 											}
 											else if (option == 'N' || option == 'n') {
 												estado++;
-												comprobacion3 = 1;
+												comprobacion = 1;
 											}
 											else {
-												printf("Incorrecto,vuelve a introducir una opcion (S/N)%s",CRLF);
-												comprobacion3 = 0;
+												printf("opcion no permitida volver a introducir%s", CRLF);
+												comprobacion = 0;
 											}
-										} while (comprobacion3 == 0);
+										} while (comprobacion == 0);
+									}
+									else {
+										estado = S_MENSAJE;
 									}
 								}
-								else {
-									printf("ERROR, no existe un destinatario en el servidor%s",CRLF);
-									estado = S_RCPT;
-								}
+								else {}
 							}
-							else if (estado == S_DATA && strncmp(buffer_in, "3", 1) == 0) {
-								estado++;
-							}
-							else if (estado == S_MENSAJE) {
-								if (strcmp(cadena, ".") == 0 && strncmp(buffer_in, "2", 1) == 0) {
-									printf("¿Desea enviar otro correo (S/N)?: ");
-
-									do {
-										option = _getche();
-										printf("%s",CRLF);
-										if (option == 'S' || option == 's') {
-											estado = S_MAIL_FROM;
-											comprobacion = 1;
-										}
-										else if (option == 'N' || option == 'n') {
-											estado++;
-											comprobacion = 1;
-										}
-										else {
-											printf("opcion no permitida volver a introducir%s",CRLF);
-											comprobacion = 0;
-										}
-									} while (comprobacion == 0);
-								}
-								else{
-									estado = S_MENSAJE;
-								}
-							}
-							else{}
 						}
-					}
 
-				}while(estado!=S_QUIT);		
+					} while (estado != S_QUIT);
+				}
 			}
-			else{
+			else {
 				int error_code=GetLastError();
 				printf("CLIENTE> ERROR AL CONECTAR CON %s:%d\r\n",ipdest,TCP_SERVICE_PORT);
 			}		

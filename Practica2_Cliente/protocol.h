@@ -7,6 +7,7 @@
 
 #define HELO "HELO"  //Bienvenida
 #define QUIT "QUIT"  //Finalizar conexión
+#define SERVER "SERVER"
 
 #define MAIL "MAIL"   
 #define FROM "FROM"  
@@ -37,3 +38,9 @@
 // NOMBRE Y PASSWORD AUTORIZADOS
 #define USER		"alumno"
 #define PASSWORD	"123456"
+
+// DEFINICION RESPUESTA
+
+#define OK "2"
+#define OKDATA "3"
+#define ER "5"
