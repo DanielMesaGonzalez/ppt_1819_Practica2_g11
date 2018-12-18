@@ -148,9 +148,6 @@ int main(int *argc, char *argv[])
 						sprintf_s(buffer_out, sizeof(buffer_out), "%s%s%s", HELO, SP, CRLF);
 						estado++;
 						break;
-
-					case S_RSET:
-						estado=S_RCPT;
 				
 					case S_MAIL_FROM:    //REMITENTE
 						printf("Introduce remitente: ");
@@ -181,7 +178,7 @@ int main(int *argc, char *argv[])
 						}
 
 						//-- implementacion RSET
-						else if (strncmp(destinatario, "RSET", 4) == 0){
+						else if (strncmp(input, "RSET", 4) == 0){
 							estado = S_RSET;
 							sprintf_s(buffer_out, sizeof(buffer_out), "%s%s", "RSET", CRLF);
 							break;
@@ -206,16 +203,16 @@ int main(int *argc, char *argv[])
 					case S_MENSAJE:
 						printf("Introduce el asunto: ");
 						gets_s(asunto, sizeof(asunto));
+						{
+							time_t t;
+							struct tm *tm;
+							char fechayhora[100];
 
-						/*time_t t;
-						struct tm *tm;
-						char fechayhora[100];
-
-						t = time(NULL);
-						tm = localtime(&t);
-						strftime(fechayhora, 100., "%H:%M:%S %d/%m/%Y", tm);
-						strcpy_s(fecha, sizeof(fecha), fechayhora);*/
-
+							time(&t);
+							tm = localtime(&t);
+							strftime(fechayhora, sizeof(fechayhora), "%H:%M:%S %d/%m/%Y", tm);
+							strcpy_s(fecha, sizeof(fecha), fechayhora);
+						}
 						// CABECERA DEL MENSAJE
 
 						sprintf_s(mensaje, sizeof(mensaje), "DATE: %s%sSUBJECT: %s%sFROM: %s%sTO: %s%s%s", fecha, CRLF, asunto, CRLF, dests, CRLF, remitente, CRLF, CRLF);
@@ -227,13 +224,13 @@ int main(int *argc, char *argv[])
 						} while (strcmp(entrada, ".") != 0);
 						sprintf_s(buffer_out, sizeof(mensaje), "%s%s", mensaje, CRLF);
 						
-						break;
+						break; // Fin del caso RSET
 
 					}
 
 					
 						enviados = send(sockfd, buffer_out, (int)strlen(buffer_out), 0);
-						if (enviados <0) {
+						if (enviados <0) { // Comprobamos que no enviamos la cadena vacía
 							DWORD error = GetLastError();
 							printf("CLIENTE> Error %d en el envío de datos\r\n", error,CRLF);
 							break;
@@ -299,6 +296,9 @@ int main(int *argc, char *argv[])
 									estado = S_QUIT;
 								}
 							}
+							break;
+						case S_RSET:
+							estado = S_MAIL_FROM;
 							break;
 
 						}
